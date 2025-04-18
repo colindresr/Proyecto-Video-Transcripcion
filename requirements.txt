@@ -1,0 +1,15 @@
+django>=4.2
+yt-dlp
+whisper
+torch
+torchaudio
+torchvision
+fpdf
+djangorestframework
+django-cors-headers
+streamlit
+requests
+python-dotenv
+torch
+transformers
+sentencepiece

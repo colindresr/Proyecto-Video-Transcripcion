@@ -1,0 +1,164 @@
+/* Fondo oscuro general */
+body, .main, .stApp {
+    background-color: #1e1e1e;
+    color: #e0e0e0;
+    max-width: 100%;
+    margin: 0 auto;
+    padding: 0 15px;
+    box-sizing: border-box;
+}
+
+/* Títulos y encabezados */
+.titulo-app {
+    font-size: 48px;
+    font-weight: bold;
+    color: #4CAF50;
+    margin-bottom: 30px;
+    text-decoration: none;
+}
+
+.header-custom {
+    font-size: 30px;
+    font-weight: 700;
+    color: #ffffff;
+    margin-bottom: 20px;
+}
+
+.subheader-custom {
+    font-size: 24px;
+    font-weight: 600;
+    color: #cccccc;
+    margin-top: 30px;
+    margin-bottom: 10px;
+}
+
+/* Botones */
+.button-style {
+    font-size: 18px;
+    font-weight: bold;
+    background-color: #4CAF50;
+    color: white;
+    padding: 8px 18px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.button-style:hover {
+    background-color: #45a049;
+}
+
+/* Textos */
+.texto-grande {
+    font-size: 18px;
+    color: #dddddd;
+    line-height: 1.6;
+}
+
+/* Links */
+.link-limpio a {
+    text-decoration: none;
+    color: #66b2ff;
+    font-weight: 500;
+}
+
+.link-limpio a:hover {
+    text-decoration: underline;
+}
+
+/* Navbar horizontal */
+.navbar {
+    background-color: #2c2c2c;
+    padding: 12px 20px;
+    display: flex;
+    gap: 20px;
+    border-radius: 8px;
+    margin-bottom: 25px;
+}
+
+.nav-link {
+    color: #ffffff;
+    font-weight: 600;
+    text-decoration: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    transition: background-color 0.2s ease;
+}
+
+.nav-link:hover {
+    background-color: #4CAF50;
+    color: white;
+}
+
+/* Headers globales */
+h1, h2, h3, h4, h5, h6 {
+    text-decoration: none;
+    color: #ffffff;
+}
+
+/* Inputs y áreas de texto */
+input[type="text"],
+textarea,
+button {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    font-size: 16px;
+    background-color: #2a2a2a;
+    color: #e0e0e0;
+    border: 1px solid #555;
+    border-radius: 6px;
+    padding: 8px;
+}
+
+/* Ajustes responsive */
+@media (max-width: 768px) {
+    .titulo-app {
+        font-size: 36px;
+    }
+
+    .header-custom {
+        font-size: 24px;
+    }
+
+    .subheader-custom {
+        font-size: 20px;
+    }
+
+    .texto-grande,
+    input[type="text"],
+    textarea {
+        font-size: 16px;
+    }
+
+    .button-style {
+        font-size: 16px;
+        padding: 6px 14px;
+    }
+}
+
+@media (max-width: 480px) {
+    .titulo-app {
+        font-size: 28px;
+    }
+
+    .header-custom {
+        font-size: 20px;
+    }
+
+    .subheader-custom {
+        font-size: 18px;
+    }
+
+    .texto-grande,
+    input[type="text"],
+    textarea {
+        font-size: 15px;
+    }
+
+    .button-style {
+        font-size: 14px;
+        padding: 5px 10px;
+    }
+}

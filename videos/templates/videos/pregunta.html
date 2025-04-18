@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Pregunta sobre: {{ video.titulo }}</h2>
+<form method="post">
+  {% csrf_token %}
+  {{ form.as_p }}
+  <button class="btn btn-primary">Preguntar</button>
+</form>
+{% if respuesta %}
+  <h4 class="mt-4">Respuesta:</h4>
+  <div class="alert alert-info">{{ respuesta }}</div>
+{% endif %}
+{% endblock %}
