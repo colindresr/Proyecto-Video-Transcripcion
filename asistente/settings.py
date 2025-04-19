@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-1^g5-zx_ejod33k^xu9c&shctx7z+67h_)_4_!w!hr%t3gtf#e
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['localhost', '127.0.0.1']
 
 
 # Application definition
@@ -128,7 +128,7 @@ STATIC_URL = '/static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",  # o donde tengas el React
+    "https://proyecto-video-transcripcion-mzj8rtxyljegt9aed4mkno.streamlit.app/",  
 ]
 
 STATICFILES_DIRS = [
