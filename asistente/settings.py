@@ -128,11 +128,11 @@ STATIC_URL = '/static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 CORS_ALLOWED_ORIGINS = [
-    "https://proyecto-video-transcripcion-mzj8rtxyljegt9aed4mkno.streamlit.app/",  
+    "https://proyecto-video-transcripcion-mzj8rtxyljegt9aed4mkno.streamlit.app",  
 ]
 
 STATICFILES_DIRS = [
-    BASE_DIR / "frontend" / "build" / "static", 
+   
 ]
 
 TEMPLATES[0]['DIRS'] = [BASE_DIR / "frontend" / "build"]
