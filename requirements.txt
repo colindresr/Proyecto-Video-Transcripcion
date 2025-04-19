@@ -10,6 +10,5 @@ django-cors-headers
 streamlit
 requests
 python-dotenv
-torch
 transformers
 sentencepiece

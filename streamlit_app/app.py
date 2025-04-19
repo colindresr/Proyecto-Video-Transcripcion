@@ -1,3 +1,5 @@
+#app.py
+# Este script es la interfaz de usuario para el asistente de video, utilizando Streamlit.
 import os
 import streamlit as st
 import requests
@@ -11,7 +13,8 @@ css_path = os.path.join(os.path.dirname(__file__), "styles.css")
 cargar_css(css_path)
 
 # ===== Navbar =====
-st.sidebar.title("📚 Navegación")
+st.sidebar.markdown('<h2 class="stTitle">📚 Navegación</h2>', unsafe_allow_html=True)
+
 pagina = st.sidebar.radio("Ir a:", ["Inicio", "Chat"])
 
 # ===== Inicio =====
@@ -34,17 +37,31 @@ if pagina == "Inicio":
         <br>
         Utiliza el menú lateral para comenzar. ¡Explora y saca el máximo provecho a tus videos!
         <br><br>
-        🔧 <strong>Tecnologías utilizadas en este proyecto:</strong>
+        🔧  <strong>Tecnologías utilizadas en este proyecto:</strong>
         <ul>
-            <li>📌 <strong>Streamlit</strong> para la interfaz web interactiva.</li>
-            <li>📌 <strong>Django</strong> con Django REST Framework para el backend y API.</li>
-            <li>📌 <strong>Python</strong> como lenguaje de programación principal.</li>
-            <li>📌 <strong>ffmpeg</strong> para procesar videos y extraer audio.</li>
-            <li>📌 <strong>MongoDB</strong> para almacenar transcripciones y otros datos.</li>
-            <li>📌 <strong>Requests</strong> para la interacción con la API.</li>
+            <li><strong>Streamlit</strong> para la interfaz web interactiva.</li>
+            <li><strong>Django</strong> con Django REST Framework para el backend y API.</li>
+            <li><strong>Python</strong> como lenguaje de programación principal.</li>
+            <li><strong>ffmpeg</strong> para procesar videos y extraer audio.</li>
+            <li><strong>MongoDB</strong> para almacenar transcripciones y otros datos.</li>
+            <li><strong>Requests</strong> para la interacción con la API.</li>
         </ul>
     </div>
     """, unsafe_allow_html=True)
+
+    # Agregar disclaimer al final
+    st.markdown("""
+    <div class="disclaimer-box">
+        ⚠️ <strong>Importante:</strong> Esta aplicación utiliza una <strong>API interna</strong> para procesar y transcribir videos, así como para responder preguntas mediante inteligencia artificial.
+        <br><br>
+        📡 Las peticiones realizadas desde esta interfaz se comunican con un servidor backend local o desplegado, el cual se encarga del procesamiento del audio, la transcripción, la generación del PDF y la interacción con modelos de lenguaje.
+        <br><br>
+        🛡️ <strong>Privacidad:</strong> No se almacena información sensible del usuario. Las transcripciones y PDFs generados se guardan únicamente con fines de visualización y consulta dentro de la sesión.
+        <br><br>
+        🧪 Esta herramienta es experimental y se encuentra en desarrollo. Puede haber errores o limitaciones en los resultados.
+    </div>
+    """, unsafe_allow_html=True)
+
 
 # ===== Chat (lo que antes era tu app.py) =====
 elif pagina == "Chat":
