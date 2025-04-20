@@ -4,6 +4,8 @@ import os
 import streamlit as st
 import requests
 
+DJANGO_API_URL = os.getenv("DJANGO_API_URL", "http://localhost:8000")
+
 # ===== Cargar estilos =====
 def cargar_css(ruta):
     with open(ruta) as f:
@@ -73,7 +75,8 @@ elif pagina == "Chat":
     if st.button("Transcribir video"):
         if link:
             with st.spinner("Procesando video..."):
-                res = requests.post("http://localhost:8000/api/procesar/", json={"link": link})
+                res = requests.post(f"{DJANGO_API_URL}/api/procesar/", json={"link": link})
+
                 if res.status_code == 200:
                     data = res.json()
                     st.session_state["transcripcion"] = data["transcripcion"]
@@ -84,7 +87,7 @@ elif pagina == "Chat":
                     pdf_id = data.get("id")
                     if pdf_id:
                         st.markdown(
-                            f'<div class="link-limpio"><a href="http://localhost:8000/api/descargar_pdf/?id={pdf_id}" target="_blank">📥 Descargar PDF desde servidor</a></div>',
+                            f'<div class="link-limpio"><a href="{DJANGO_API_URL}/api/descargar_pdf/?id={pdf_id}" target="_blank">📥 Descargar PDF desde servidor</a></div>',
                             unsafe_allow_html=True
                         )
                 else:
@@ -101,7 +104,7 @@ elif pagina == "Chat":
             resultados = []
             for i, url in enumerate(links):
                 with st.spinner(f"Procesando {url}..."):
-                    res = requests.post("http://localhost:8000/api/procesar/", json={"link": url})
+                    res = requests.post(f"{DJANGO_API_URL}/api/procesar/", json={"link": link})
                     if res.status_code == 200:
                         data = res.json()
                         resultados.append(data)
@@ -118,7 +121,7 @@ elif pagina == "Chat":
         pregunta = st.text_input("❓ Haz una pregunta sobre el video")
         if st.button("Preguntar") and pregunta:
             with st.spinner("Buscando respuesta..."):
-                res = requests.post("http://localhost:8000/api/preguntar/", json={
+                res = requests.post(f"{DJANGO_API_URL}/api/preguntar/", json={
                     "pregunta": pregunta,
                     "contenido": st.session_state["transcripcion"]
                 })
@@ -136,7 +139,7 @@ elif pagina == "Chat":
             st.text_area("Transcripción", value=item["transcripcion"], height=200, key=f"transcripcion_{item['id']}")
             if 'id' in item:
                 st.markdown(
-                    f'<div class="link-limpio"><a href="http://localhost:8000/api/descargar_pdf/?id={item["id"]}" target="_blank">📥 Descargar PDF desde servidor</a></div>',
+                    f'<div class="link-limpio"><a href="{DJANGO_API_URL}/api/descargar_pdf/?id={item["id"]}" target="_blank">📥 Descargar PDF desde servidor</a></div>',
                     unsafe_allow_html=True
                 )
             with st.form(key=f"form_{item['id']}"):
@@ -144,7 +147,7 @@ elif pagina == "Chat":
                 submit = st.form_submit_button("Preguntar")
                 if submit and pregunta:
                     with st.spinner("Buscando respuesta..."):
-                        res = requests.post("http://localhost:8000/api/preguntar/", json={
+                        res = requests.post(f"{DJANGO_API_URL}/api/preguntar/", json={
                             "pregunta": pregunta,
                             "contenido": item["transcripcion"]
                         })
