@@ -1,4 +1,3 @@
-# procesador.py
 import os
 import tempfile
 import whisper
@@ -7,6 +6,7 @@ from fpdf import FPDF
 from datetime import datetime
 from conexion_mongo import guardar_en_mongo
 import torch
+from transformers import T5Tokenizer, T5ForConditionalGeneration
 import re
 from dotenv import load_dotenv
 import io  
@@ -14,19 +14,23 @@ import io
 # Cargar variables de entorno
 load_dotenv()
 
-# Variables globales para carga diferida
-tokenizer = None
-model = None
+# Cargar el modelo y tokenizador T5
+tokenizer = T5Tokenizer.from_pretrained("t5-base")
+model = T5ForConditionalGeneration.from_pretrained("t5-base")
 
 def procesar_video(url):
     temp_dir = tempfile.mkdtemp()
     output_path = os.path.join(temp_dir, 'video.%(ext)s')
+
+    # Ruta al archivo de cookies exportado desde el navegador
+    cookies_path = os.path.join(os.path.dirname(__file__), 'cookies', 'cookies.txt')  # Actualiza esto según la ubicación de tus cookies
 
     ydl_opts = {
         'format': 'bestaudio/best',
         'outtmpl': output_path,
         'quiet': True,
         'noplaylist': True,
+        'cookies': cookies_path,  # Usa las cookies para autenticar
         'postprocessors': [{
             'key': 'FFmpegExtractAudio',
             'preferredcodec': 'mp3',
@@ -35,8 +39,12 @@ def procesar_video(url):
     }
 
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-        info = ydl.extract_info(url, download=True)
-        titulo = info.get('title', 'Video sin título')
+        try:
+            info = ydl.extract_info(url, download=True)
+            titulo = info.get('title', 'Video sin título')
+        except yt_dlp.utils.DownloadError as e:
+            print(f"Error descargando el video: {e}")
+            return None
 
     audio_file = os.path.join(temp_dir, 'video.mp3')
 
@@ -68,19 +76,6 @@ def procesar_video(url):
     }
 
 def responder_pregunta(pregunta, transcripcion, max_chars=500):
-    global tokenizer, model
-
-    import torch
-    from transformers import T5Tokenizer, T5ForConditionalGeneration
-
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
-    # Carga diferida del modelo/tokenizer
-    if tokenizer is None:
-        tokenizer = T5Tokenizer.from_pretrained("t5-base")
-    if model is None:
-        model = T5ForConditionalGeneration.from_pretrained("t5-base").to(device)
-
     respuestas = []
 
     for i in range(0, len(transcripcion), max_chars):
@@ -88,28 +83,14 @@ def responder_pregunta(pregunta, transcripcion, max_chars=500):
         if fragmento.strip():
             try:
                 input_text = f"question: {pregunta} context: {fragmento}"
-                inputs = tokenizer(input_text, return_tensors="pt", padding=True, truncation=True).to(device)
-                outputs = model.generate(
-                    inputs['input_ids'], 
-                    max_length=150, 
-                    num_return_sequences=1, 
-                    no_repeat_ngram_size=2
-                )
+                inputs = tokenizer(input_text, return_tensors="pt", padding=True, truncation=True)
+                outputs = model.generate(inputs['input_ids'], max_length=150, num_return_sequences=1, no_repeat_ngram_size=2)
                 respuesta = tokenizer.decode(outputs[0], skip_special_tokens=True)
                 respuestas.append(respuesta)
             except Exception as e:
                 print(f"Error procesando fragmento: {e}")
 
-    # Liberar modelo/tokenizer de memoria
-    del model
-    del tokenizer
-    model = None
-    tokenizer = None
-
-    torch.cuda.empty_cache()
-
     if not respuestas:
         return "No se pudo generar una respuesta con el modelo."
 
     return " ".join(respuestas)
-

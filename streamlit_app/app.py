@@ -4,7 +4,7 @@ import os
 import streamlit as st
 import requests
 
-DJANGO_API_URL = os.getenv("DJANGO_API_URL", "http://localhost:8000")
+DJANGO_API_URL = os.getenv("DJANGO_API_URL", "http://localhost:10000")
 
 # ===== Cargar estilos =====
 def cargar_css(ruta):
