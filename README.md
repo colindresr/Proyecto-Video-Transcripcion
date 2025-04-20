@@ -50,3 +50,21 @@ cd proyecto-video-transcripcion
 pip install -r requirements.txt
 ```
 
+### 3. Ejecutar el backend
+
+```bash
+python manage.py runserver 10000
+```
+
+### 4. Ejecutar el frontend
+
+```bash
+streamlit run streamlit_app/app.py
+```
+
+# 👨‍💻 Autores
+
+Ricardo Adrián Colindres Franco 
+
+
+---
