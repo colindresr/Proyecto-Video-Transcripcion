@@ -38,18 +38,15 @@ def descargar_pdf(request):
 def procesar(request):
     link = request.data.get('link')
     if not link:
-        return Response({'error': 'Falta el link'}, status=400)
-    
+        return Response({'error': 'Falta el enlace del video.'}, status=400)
+
     resultado = procesar_video(link)
 
-    if 'id' not in resultado:
-        return Response({'error': 'ID no encontrado en el procesamiento'}, status=400)
-    
-    return Response({
-        "transcripcion": resultado['transcripcion'],
-        "titulo": resultado['titulo'],
-        "id": resultado['id']
-    })
+    if resultado is None:
+        return Response({'error': 'No se pudo procesar el video. Revisa si requiere autenticación o cookies.'}, status=500)
+
+    return Response(resultado)
+
 
 @api_view(['POST'])
 def preguntar(request):

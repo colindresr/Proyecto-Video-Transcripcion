@@ -45,6 +45,9 @@ def procesar_video(url):
         except yt_dlp.utils.DownloadError as e:
             print(f"Error descargando el video: {e}")
             return None
+        except Exception as e:
+            print(f"Error inesperado: {e}")
+            return None
 
     audio_file = os.path.join(temp_dir, 'video.mp3')
 
