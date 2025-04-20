@@ -1,3 +1,4 @@
+#procesador.py
 import os
 import tempfile
 from datetime import datetime
@@ -6,30 +7,47 @@ import torch
 import yt_dlp
 import re
 from dotenv import load_dotenv
-import io  
+import io
 from conexion_mongo import guardar_en_mongo
 
 # Cargar variables de entorno
 load_dotenv()
 
+def escribir_cookies_temporales():
+    cookies_data = os.getenv("YTDLP_COOKIES")
+    if not cookies_data:
+        raise ValueError("No se encontró la variable YTDLP_COOKIES")
+
+    temp_dir = tempfile.mkdtemp()
+    cookies_path = os.path.join(temp_dir, "cookies.txt")
+
+    # Las cookies deben estar separadas por saltos de línea reales
+    cookies_limpias = cookies_data.replace(";", "\n")
+
+    with open(cookies_path, "w", encoding="utf-8") as f:
+        f.write(cookies_limpias)
+
+    return cookies_path
+
 def procesar_video(url):
     import whisper  # Cargar whisper solo cuando se use
-
-    # Cargar las credenciales de YouTube desde las variables de entorno
-    yt_login = os.getenv("YT_LOGIN")
-    yt_password = os.getenv("YT_PASSWORD")
 
     temp_dir = tempfile.mkdtemp()
     output_path = os.path.join(temp_dir, 'video.%(ext)s')
 
-    # Configuración de yt-dlp para descargar el video sin cookies, usando login y contraseña
+    try:
+        cookies_path = escribir_cookies_temporales()
+    except Exception as e:
+        print(f"Error generando cookies temporales: {e}")
+        return {'error': f"Error generando cookies temporales: {str(e)}"}
+
+    # Configuración de yt-dlp para descargar el video usando cookies
     ydl_opts = {
         'format': 'bestaudio/best',
         'outtmpl': output_path,
         'quiet': True,
         'noplaylist': True,
-        'username': yt_login,  # Usar las variables de entorno para autenticar
-        'password': yt_password,  # Usar las variables de entorno para autenticar
+        'cookies': cookies_path,
         'postprocessors': [{
             'key': 'FFmpegExtractAudio',
             'preferredcodec': 'mp3',
@@ -87,11 +105,9 @@ def procesar_video(url):
         'id': str(video_id)
     }
 
-
 def responder_pregunta(pregunta, transcripcion, max_chars=500):
     from transformers import T5Tokenizer, T5ForConditionalGeneration  # Cargar solo cuando se necesite
 
-    # Cargar el modelo y tokenizador T5 cuando se llama la función
     tokenizer = T5Tokenizer.from_pretrained("t5-base")
     model = T5ForConditionalGeneration.from_pretrained("t5-base")
 
