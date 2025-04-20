@@ -1,5 +1,4 @@
-#app.py
-# Este script es la interfaz de usuario para el asistente de video, utilizando Streamlit.
+# app.py
 import os
 import streamlit as st
 import requests
@@ -16,7 +15,6 @@ cargar_css(css_path)
 
 # ===== Navbar =====
 st.sidebar.markdown('<h2 class="stTitle">📚 Navegación</h2>', unsafe_allow_html=True)
-
 pagina = st.sidebar.radio("Ir a:", ["Inicio", "Chat"])
 
 # ===== Inicio =====
@@ -51,7 +49,6 @@ if pagina == "Inicio":
     </div>
     """, unsafe_allow_html=True)
 
-    # Agregar disclaimer al final
     st.markdown("""
     <div class="disclaimer-box">
         ⚠️ <strong>Importante:</strong> Esta aplicación utiliza una <strong>API interna</strong> para procesar y transcribir videos, así como para responder preguntas mediante inteligencia artificial.
@@ -64,11 +61,9 @@ if pagina == "Inicio":
     </div>
     """, unsafe_allow_html=True)
 
-
-# ===== Chat (lo que antes era tu app.py) =====
+# ===== Chat =====
 elif pagina == "Chat":
     st.markdown('<h1 class="titulo-app">Asistente de Video</h1>', unsafe_allow_html=True)
-
     st.markdown('<div class="header-custom">🔗 Ingresar link directamente</div>', unsafe_allow_html=True)
     link = st.text_input("Pega el link del video aquí")
 
@@ -78,20 +73,31 @@ elif pagina == "Chat":
                 res = requests.post(f"{DJANGO_API_URL}/api/procesar/", json={"link": link})
 
                 if res.status_code == 200:
-                    data = res.json()
-                    st.session_state["transcripcion"] = data["transcripcion"]
-                    st.session_state["titulo"] = data["titulo"]
-                    st.session_state["id"] = data["id"]
-                    st.success(f"✅ {data['titulo']} transcrito con éxito")
+                    try:
+                        data = res.json()
+                        if "transcripcion" in data and "titulo" in data and "id" in data:
+                            st.session_state["transcripcion"] = data["transcripcion"]
+                            st.session_state["titulo"] = data["titulo"]
+                            st.session_state["id"] = data["id"]
+                            st.success(f"✅ {data['titulo']} transcrito con éxito")
 
-                    pdf_id = data.get("id")
-                    if pdf_id:
-                        st.markdown(
-                            f'<div class="link-limpio"><a href="{DJANGO_API_URL}/api/descargar_pdf/?id={pdf_id}" target="_blank">📥 Descargar PDF desde servidor</a></div>',
-                            unsafe_allow_html=True
-                        )
+                            pdf_id = data.get("id")
+                            st.markdown(
+                                f'<div class="link-limpio"><a href="{DJANGO_API_URL}/api/descargar_pdf/?id={pdf_id}" target="_blank">📥 Descargar PDF desde servidor</a></div>',
+                                unsafe_allow_html=True
+                            )
+                        else:
+                            st.error("❌ La respuesta no contiene la transcripción esperada.")
+                            st.json(data)
+                    except Exception as e:
+                        st.error(f"❌ Error interpretando la respuesta del servidor: {e}")
+                        st.write(res.text)
                 else:
-                    st.error("❌ Error procesando el video")
+                    st.error(f"❌ Error procesando el video. Código: {res.status_code}")
+                    try:
+                        st.json(res.json())
+                    except:
+                        st.write(res.text)
 
     st.divider()
     st.markdown('<div class="header-custom">📄 Subir archivo .txt con links</div>', unsafe_allow_html=True)
@@ -104,11 +110,14 @@ elif pagina == "Chat":
             resultados = []
             for i, url in enumerate(links):
                 with st.spinner(f"Procesando {url}..."):
-                    res = requests.post(f"{DJANGO_API_URL}/api/procesar/", json={"link": link})
+                    res = requests.post(f"{DJANGO_API_URL}/api/procesar/", json={"link": url})
                     if res.status_code == 200:
-                        data = res.json()
-                        resultados.append(data)
-                        st.success(f"{i+1}. ✅ {data['titulo']}")
+                        try:
+                            data = res.json()
+                            resultados.append(data)
+                            st.success(f"{i+1}. ✅ {data.get('titulo', 'Sin título')}")
+                        except:
+                            st.error(f"{i+1}. ❌ Error al interpretar respuesta para: {url}")
                     else:
                         st.error(f"{i+1}. ❌ Error al procesar: {url}")
             st.session_state["batch_resultados"] = resultados
@@ -135,21 +144,21 @@ elif pagina == "Chat":
     if "batch_resultados" in st.session_state:
         st.markdown('<div class="subheader-custom">📦 Resultados del archivo:</div>', unsafe_allow_html=True)
         for item in st.session_state["batch_resultados"]:
-            st.markdown(f"<div class='texto-grande'><strong>{item['titulo']}</strong></div>", unsafe_allow_html=True)
-            st.text_area("Transcripción", value=item["transcripcion"], height=200, key=f"transcripcion_{item['id']}")
+            st.markdown(f"<div class='texto-grande'><strong>{item.get('titulo', 'Sin título')}</strong></div>", unsafe_allow_html=True)
+            st.text_area("Transcripción", value=item.get("transcripcion", ""), height=200, key=f"transcripcion_{item.get('id', '')}")
             if 'id' in item:
                 st.markdown(
                     f'<div class="link-limpio"><a href="{DJANGO_API_URL}/api/descargar_pdf/?id={item["id"]}" target="_blank">📥 Descargar PDF desde servidor</a></div>',
                     unsafe_allow_html=True
                 )
-            with st.form(key=f"form_{item['id']}"):
-                pregunta = st.text_input("❓ Haz una pregunta sobre este video", key=f"pregunta_{item['id']}")
+            with st.form(key=f"form_{item.get('id', i)}"):
+                pregunta = st.text_input("❓ Haz una pregunta sobre este video", key=f"pregunta_{item.get('id', i)}")
                 submit = st.form_submit_button("Preguntar")
                 if submit and pregunta:
                     with st.spinner("Buscando respuesta..."):
                         res = requests.post(f"{DJANGO_API_URL}/api/preguntar/", json={
                             "pregunta": pregunta,
-                            "contenido": item["transcripcion"]
+                            "contenido": item.get("transcripcion", "")
                         })
                         if res.status_code == 200:
                             respuesta = res.json().get("respuesta", "Sin respuesta")
