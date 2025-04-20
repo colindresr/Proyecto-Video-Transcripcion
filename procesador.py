@@ -15,16 +15,21 @@ load_dotenv()
 def procesar_video(url):
     import whisper  # Cargar whisper solo cuando se use
 
+    # Cargar las credenciales de YouTube desde las variables de entorno
+    yt_login = os.getenv("YT_LOGIN")
+    yt_password = os.getenv("YT_PASSWORD")
+
     temp_dir = tempfile.mkdtemp()
     output_path = os.path.join(temp_dir, 'video.%(ext)s')
-    cookies_path = os.path.join(os.getcwd(), 'cookies', 'cookies.txt')
 
+    # Configuración de yt-dlp para descargar el video sin cookies, usando login y contraseña
     ydl_opts = {
         'format': 'bestaudio/best',
         'outtmpl': output_path,
         'quiet': True,
         'noplaylist': True,
-        'cookies': cookies_path,
+        'username': yt_login,  # Usar las variables de entorno para autenticar
+        'password': yt_password,  # Usar las variables de entorno para autenticar
         'postprocessors': [{
             'key': 'FFmpegExtractAudio',
             'preferredcodec': 'mp3',
