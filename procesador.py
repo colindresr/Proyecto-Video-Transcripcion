@@ -13,21 +13,18 @@ from conexion_mongo import guardar_en_mongo
 load_dotenv()
 
 def procesar_video(url):
-    import whisper  # Cargar whisper solo cuando se use la función
+    import whisper  # Cargar whisper solo cuando se use
 
     temp_dir = tempfile.mkdtemp()
     output_path = os.path.join(temp_dir, 'video.%(ext)s')
-
-    # Ruta al archivo de cookies exportado desde el navegador
     cookies_path = os.path.join(os.getcwd(), 'cookies', 'cookies.txt')
-  # Actualiza esto según la ubicación de tus cookies
 
     ydl_opts = {
         'format': 'bestaudio/best',
         'outtmpl': output_path,
         'quiet': True,
         'noplaylist': True,
-        'cookies': cookies_path,  # Usa las cookies para autenticar
+        'cookies': cookies_path,
         'postprocessors': [{
             'key': 'FFmpegExtractAudio',
             'preferredcodec': 'mp3',
@@ -41,39 +38,50 @@ def procesar_video(url):
             titulo = info.get('title', 'Video sin título')
         except yt_dlp.utils.DownloadError as e:
             print(f"Error descargando el video: {e}")
-            return None
+            return {'error': f"Error descargando el video: {str(e)}"}
         except Exception as e:
             print(f"Error inesperado: {e}")
-            return None
+            return {'error': f"Error inesperado: {str(e)}"}
 
     audio_file = os.path.join(temp_dir, 'video.mp3')
 
-    # Transcribir con Whisper
-    model_whisper = whisper.load_model("base")  # Solo se carga cuando se usa
-    resultado = model_whisper.transcribe(audio_file)
-    transcripcion = resultado['text']
+    # Transcripción con Whisper
+    try:
+        model_whisper = whisper.load_model("base")
+        resultado = model_whisper.transcribe(audio_file)
+        transcripcion = resultado['text']
+    except Exception as e:
+        print(f"Error transcribiendo el video: {e}")
+        return {'error': f"Error transcribiendo el video: {str(e)}"}
 
     # Limpiar el texto para almacenamiento seguro
     transcripcion_limpia = transcripcion.encode('latin-1', 'replace').decode('latin-1')
     titulo_limpio = titulo.encode('latin-1', 'replace').decode('latin-1')
 
     # Crear PDF en memoria
-    pdf = FPDF()
-    pdf.add_page()
-    pdf.set_font("Arial", size=12)
-    pdf.multi_cell(0, 10, f"Título: {titulo_limpio}\n\nTranscripción:\n{transcripcion_limpia}")
-
-    # Exportar el PDF a bytes
-    pdf_bytes = pdf.output(dest='S').encode('latin1')
+    try:
+        pdf = FPDF()
+        pdf.add_page()
+        pdf.set_font("Arial", size=12)
+        pdf.multi_cell(0, 10, f"Título: {titulo_limpio}\n\nTranscripción:\n{transcripcion_limpia}")
+        pdf_bytes = pdf.output(dest='S').encode('latin1')
+    except Exception as e:
+        print(f"Error generando el PDF: {e}")
+        return {'error': f"Error generando el PDF: {str(e)}"}
 
     # Guardar en MongoDB y obtener el ID
-    video_id = guardar_en_mongo(titulo_limpio, url, transcripcion_limpia, pdf_bytes)
+    try:
+        video_id = guardar_en_mongo(titulo_limpio, url, transcripcion_limpia, pdf_bytes)
+    except Exception as e:
+        print(f"Error guardando en MongoDB: {e}")
+        return {'error': f"Error guardando en MongoDB: {str(e)}"}
 
     return {
         'titulo': titulo_limpio,
         'transcripcion': transcripcion_limpia,
-        'id': str(video_id)  # Incluye el id del video
+        'id': str(video_id)
     }
+
 
 def responder_pregunta(pregunta, transcripcion, max_chars=500):
     from transformers import T5Tokenizer, T5ForConditionalGeneration  # Cargar solo cuando se necesite
