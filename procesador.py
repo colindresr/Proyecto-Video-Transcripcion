@@ -21,11 +21,9 @@ def escribir_cookies_temporales():
     temp_dir = tempfile.mkdtemp()
     cookies_path = os.path.join(temp_dir, "cookies.txt")
 
-    # Las cookies deben estar separadas por saltos de línea reales
-    cookies_limpias = cookies_data.replace(";", "\n")
-
+    # Guardar el contenido EXACTO del archivo cookies.txt
     with open(cookies_path, "w", encoding="utf-8") as f:
-        f.write(cookies_limpias)
+        f.write(cookies_data)
 
     return cookies_path
 
