@@ -19,7 +19,8 @@ def procesar_video(url):
     output_path = os.path.join(temp_dir, 'video.%(ext)s')
 
     # Ruta al archivo de cookies exportado desde el navegador
-    cookies_path = os.path.join(os.path.dirname(__file__), 'cookies', 'cookies.txt')  # Actualiza esto según la ubicación de tus cookies
+    cookies_path = os.path.join(os.getcwd(), 'cookies', 'cookies.txt')
+  # Actualiza esto según la ubicación de tus cookies
 
     ydl_opts = {
         'format': 'bestaudio/best',
