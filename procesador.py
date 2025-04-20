@@ -1,24 +1,20 @@
 import os
 import tempfile
-import whisper
-import yt_dlp
-from fpdf import FPDF
 from datetime import datetime
-from conexion_mongo import guardar_en_mongo
+from fpdf import FPDF
 import torch
-from transformers import T5Tokenizer, T5ForConditionalGeneration
+import yt_dlp
 import re
 from dotenv import load_dotenv
 import io  
+from conexion_mongo import guardar_en_mongo
 
 # Cargar variables de entorno
 load_dotenv()
 
-# Cargar el modelo y tokenizador T5
-tokenizer = T5Tokenizer.from_pretrained("t5-base")
-model = T5ForConditionalGeneration.from_pretrained("t5-base")
-
 def procesar_video(url):
+    import whisper  # Cargar whisper solo cuando se use la función
+
     temp_dir = tempfile.mkdtemp()
     output_path = os.path.join(temp_dir, 'video.%(ext)s')
 
@@ -52,7 +48,7 @@ def procesar_video(url):
     audio_file = os.path.join(temp_dir, 'video.mp3')
 
     # Transcribir con Whisper
-    model_whisper = whisper.load_model("base")
+    model_whisper = whisper.load_model("base")  # Solo se carga cuando se usa
     resultado = model_whisper.transcribe(audio_file)
     transcripcion = resultado['text']
 
@@ -79,6 +75,12 @@ def procesar_video(url):
     }
 
 def responder_pregunta(pregunta, transcripcion, max_chars=500):
+    from transformers import T5Tokenizer, T5ForConditionalGeneration  # Cargar solo cuando se necesite
+
+    # Cargar el modelo y tokenizador T5 cuando se llama la función
+    tokenizer = T5Tokenizer.from_pretrained("t5-base")
+    model = T5ForConditionalGeneration.from_pretrained("t5-base")
+
     respuestas = []
 
     for i in range(0, len(transcripcion), max_chars):
