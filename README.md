@@ -18,11 +18,12 @@ Este proyecto es una aplicación web que permite transcribir videos de YouTube, 
 ## 🧰 Tecnologías Usadas
 
 ### Backend
+- [FFmpeg] para obtener audio
 - [Django](https://www.djangoproject.com/)
 - [Django REST Framework](https://www.django-rest-framework.org/)
 - [pytube](https://pytube.io/) / `yt-dlp` para descarga de videos
 - [OpenAI Whisper](https://github.com/openai/whisper) para transcripción
-- [PyMuPDF](https://pymupdf.readthedocs.io/) para generación de PDFs
+- [FPDF]([https://pymupdf.readthedocs.io/) para generación de PDFs
 - [pymongo](https://pymongo.readthedocs.io/) para conexión a MongoDB
 
 ### Frontend
