@@ -50,6 +50,14 @@ cd proyecto-video-transcripcion
 pip install -r requirements.txt
 ```
 
+### 3. Crear un archivo `.env` en la raíz del proyecto y agregar las siguientes variables de entorno como en el archivo .env.example
+```env
+MONGODB_URI="URL de la base de datos MongoDB"
+ALLOWED_HOSTS="URL del servidor"
+DJANGO_API_URL="UrL del servidor"
+YTDLP_COOKIES="Cookies de YTDLP"
+```
+
 ### 3. Ejecutar el backend
 
 ```bash
