@@ -224,7 +224,7 @@ section[data-testid="stSidebar"] input[type="radio"]:checked + div > label {
     }
 
     [data-testid="stSidebar"] {
-        padding: 20px 15px;
+        padding: 20px 5px;
     }
 
     section[data-testid="stSidebar"] label {
