@@ -64,7 +64,10 @@ streamlit run streamlit_app/app.py
 
 # 👨‍💻 Autores
 
+Ricardo Esteban D’Alessandro Marroquín González
 Ricardo Adrián Colindres Franco 
-
+Oscar José Barrios Cotom
+Sara Rebeca Archila de León
+Axel David Hurtarte Mayen
 
 ---
