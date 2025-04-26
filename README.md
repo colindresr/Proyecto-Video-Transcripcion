@@ -26,6 +26,7 @@ Este proyecto es una aplicación web que permite transcribir videos de YouTube, 
 - [FPDF](https://pymupdf.readthedocs.io/) para generación de PDFs
 - [pymongo](https://pymongo.readthedocs.io/) para conexión a MongoDB
 - [T5 Transformers] para Procesamiento de Lenguaje Natural e Inteligencia Artificial
+- DuckDuckGo para realizar las búsquedas en internet
 
 ### Frontend
 - [Streamlit](https://streamlit.io/)
