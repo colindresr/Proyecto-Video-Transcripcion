@@ -1,10 +1,15 @@
 # app.py
 import os  # Importa el módulo os para interactuar con el sistema operativo.
 import streamlit as st  # Importa Streamlit para crear la interfaz web interactiva.
+import sys  # Importa sys para manipular el sistema y sus parámetros.
 import requests  # Importa requests para realizar solicitudes HTTP.
+# Agrega el directorio raíz (el que contiene procesador.py) al path
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from procesador import buscar_en_internet # Importa la función buscar_en_internet desde procesador.py
 
 # URL base de la API de Django, obtenida desde las variables de entorno o con un valor predeterminado.
 DJANGO_API_URL = os.getenv("DJANGO_API_URL", "http://localhost:10000")
+print(f"Usando DJANGO_API_URL: {DJANGO_API_URL}")
 
 # ===== Cargar estilos =====
 def cargar_css(ruta):
@@ -190,3 +195,26 @@ elif pagina == "Chat":
                             st.write(respuesta)
                         else:
                             st.error("❌ Error al enviar la pregunta")
+
+# ===== Buscar en Internet (solo si hay alguna transcripción disponible) =====
+if "transcripcion" in st.session_state or "batch_resultados" in st.session_state:
+    st.divider()
+    st.markdown('<div class="subheader-custom">🌐 Buscar en Internet:</div>', unsafe_allow_html=True)
+
+    consulta = st.text_input("🔍 Escribe tu consulta para buscar en internet")
+    if st.button("Buscar en Internet"):
+        if consulta:
+            with st.spinner("Buscando en internet..."):
+                resultados = buscar_en_internet(consulta, max_resultados=5)
+                if resultados:
+                    st.markdown('<div class="subheader-custom">📄 Resultados de la búsqueda:</div>', unsafe_allow_html=True)
+                    for resultado in resultados:
+                        if "error" in resultado:
+                            st.error(resultado["error"])
+                        else:
+                            st.markdown(f"**Título:** {resultado['titulo']}")
+                            st.markdown(f"**URL:** [Enlace]({resultado['url']})")
+                            st.markdown(f"**Resumen:** {resultado['resumen']}")
+                            st.markdown("---")
+                else:
+                    st.warning("No se encontraron resultados para la consulta.")

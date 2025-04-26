@@ -9,9 +9,17 @@ import re  # Importa re para trabajar con expresiones regulares.
 from dotenv import load_dotenv  # Importa load_dotenv para cargar variables de entorno desde un archivo .env.
 import io  # Importa io para manejar datos en memoria.
 from conexion_mongo import guardar_en_mongo  # Importa la función para guardar datos en MongoDB.
+from duckduckgo_search import DDGS
 
 # Cargar variables de entorno
 load_dotenv()
+
+
+# Verifica que DJANGO_API_URL esté configurada correctamente
+DJANGO_API_URL = os.getenv("DJANGO_API_URL")
+print(f"DJANGO_API_URL: {DJANGO_API_URL}")  # Esto debería imprimir "http://localhost:10000" si está configurado correctamente
+
+is_local = os.getenv("DJANGO_API_URL", "").startswith("http://localhost")
 
 def escribir_cookies_temporales():
     """
@@ -27,7 +35,7 @@ def escribir_cookies_temporales():
     temp_dir = tempfile.mkdtemp()
     cookies_path = os.path.join(temp_dir, "cookies.txt")
 
-    # Guardar el contenido EXACTO del archivo cookies.txt
+    # Guardar las cookies en el archivo temporal
     with open(cookies_path, "w", encoding="utf-8") as f:
         f.write(cookies_data)
 
@@ -48,25 +56,34 @@ def procesar_video(url):
     temp_dir = tempfile.mkdtemp()  # Crea un directorio temporal para almacenar archivos.
     output_path = os.path.join(temp_dir, 'video.%(ext)s')  # Ruta para guardar el archivo descargado.
 
-    try:
-        cookies_path = escribir_cookies_temporales()  # Genera el archivo de cookies temporales.
-    except Exception as e:
-        print(f"Error generando cookies temporales: {e}")
-        return {'error': f"Error generando cookies temporales: {str(e)}"}
+    # Verifica si estás en un entorno local
+    is_local = os.getenv("DJANGO_API_URL", "").startswith("http://localhost")
 
-    # Configuración de yt-dlp para descargar el video usando cookies.
+    # Configuración de cookies (solo si no estás en local)
+    cookies_path = None
+    if not is_local:
+        try:
+            cookies_path = escribir_cookies_temporales()  # Genera el archivo de cookies temporales.
+        except Exception as e:
+            print(f"Error generando cookies temporales: {e}")
+            return {'error': f"Error generando cookies temporales: {str(e)}"}
+
+    # Configuración de yt-dlp para descargar el video
     ydl_opts = {
         'format': 'bestaudio/best',
         'outtmpl': output_path,
         'quiet': True,
         'noplaylist': True,
-        'cookies': cookies_path,
         'postprocessors': [{
             'key': 'FFmpegExtractAudio',
             'preferredcodec': 'mp3',
             'preferredquality': '192',
         }],
     }
+
+    # Agrega las cookies si no estás en local
+    if cookies_path:
+        ydl_opts['cookies'] = cookies_path
 
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         try:
@@ -118,7 +135,7 @@ def procesar_video(url):
         'id': str(video_id)
     }
 
-def responder_pregunta(pregunta, transcripcion, max_chars=500):
+def responder_pregunta(pregunta, transcripcion, max_chars=300):
     """
     Responde una pregunta basada en una transcripción utilizando un modelo T5.
 
@@ -130,27 +147,74 @@ def responder_pregunta(pregunta, transcripcion, max_chars=500):
     Returns:
         str: La respuesta generada por el modelo.
     """
-    from transformers import T5Tokenizer, T5ForConditionalGeneration  # Importa solo cuando se necesita.
+    from transformers import T5Tokenizer, T5ForConditionalGeneration
 
-    tokenizer = T5Tokenizer.from_pretrained("t5-base")  # Carga el tokenizador T5.
-    model = T5ForConditionalGeneration.from_pretrained("t5-base")  # Carga el modelo T5.
+    # Cargar el modelo y el tokenizador
+    tokenizer = T5Tokenizer.from_pretrained("t5-base")
+    model = T5ForConditionalGeneration.from_pretrained("t5-base")
 
     respuestas = []
 
-    # Divide la transcripción en fragmentos y procesa cada uno.
+    # Limpieza de la transcripción
+    transcripcion = re.sub(r'\s+', ' ', transcripcion)  # Reemplaza múltiples espacios por uno solo
+    transcripcion = re.sub(r'[^\w\s.,!?]', '', transcripcion)  # Elimina caracteres no deseados
+
+    # Divide la transcripción en fragmentos y procesa cada uno
     for i in range(0, len(transcripcion), max_chars):
         fragmento = transcripcion[i:i+max_chars]
-        if fragmento.strip():  # Ignora fragmentos vacíos.
+        if fragmento.strip():
             try:
-                input_text = f"question: {pregunta} context: {fragmento}"
+                # Formato de entrada mejorado
+                input_text = f"Resuma el siguiente texto de manera clara: {fragmento}"
                 inputs = tokenizer(input_text, return_tensors="pt", padding=True, truncation=True)
-                outputs = model.generate(inputs['input_ids'], max_length=150, num_return_sequences=1, no_repeat_ngram_size=2)
+
+                # Generación de texto con hiperparámetros ajustados
+                outputs = model.generate(
+                    inputs['input_ids'],
+                     max_length=75,  # Longitud máxima de la respuesta
+                    do_sample=True,  # Habilita el muestreo
+                    temperature=0.7,  # Controla la aleatoriedad
+                    top_k=50,  # Limita a los 50 tokens más probables
+                    top_p=0.9,  # Usa nucleus sampling
+                    num_return_sequences=1,  # Genera una sola respuesta
+                    no_repeat_ngram_size=2  # Evita repeticiones
+                )
+
+                # Decodifica la respuesta y la agrega a la lista
                 respuesta = tokenizer.decode(outputs[0], skip_special_tokens=True)
-                respuestas.append(respuesta)
+                respuestas.append(respuesta.strip())
             except Exception as e:
                 print(f"Error procesando fragmento: {e}")
 
     if not respuestas:
         return "No se pudo generar una respuesta con el modelo."
 
-    return " ".join(respuestas)
+    # Combina las respuestas y elimina redundancias
+    respuesta_final = " ".join(respuestas)
+    respuesta_final = re.sub(r'\s+', ' ', respuesta_final)  # Limpia espacios extra
+    return respuesta_final
+
+def buscar_en_internet(query, max_resultados=5):
+    """
+    Realiza una búsqueda en Internet usando DuckDuckGo.
+
+    Args:
+        query (str): La consulta de búsqueda.
+        max_resultados (int): Número máximo de resultados a devolver.
+
+    Returns:
+        list: Una lista de diccionarios con 'titulo', 'url' y 'resumen' de los resultados.
+    """
+    resultados = []
+    try:
+        with DDGS() as ddgs:
+            for r in ddgs.text(query, max_results=max_resultados):
+                resultados.append({
+                    'titulo': r.get('title'),
+                    'url': r.get('href'),
+                    'resumen': r.get('body')
+                })
+    except Exception as e:
+        return [{'error': f"No se pudo realizar la búsqueda: {str(e)}"}]
+
+    return resultados
