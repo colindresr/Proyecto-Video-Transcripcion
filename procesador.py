@@ -150,7 +150,8 @@ def responder_pregunta(pregunta, transcripcion, max_chars=300):
     from transformers import T5Tokenizer, T5ForConditionalGeneration
 
     # Cargar el modelo y el tokenizador
-    tokenizer = T5Tokenizer.from_pretrained("t5-base")
+    tokenizer = T5Tokenizer.from_pretrained("t5-base", legacy=False)
+    # Cargar el modelo T5 preentrenado
     model = T5ForConditionalGeneration.from_pretrained("t5-base")
 
     respuestas = []
@@ -166,7 +167,7 @@ def responder_pregunta(pregunta, transcripcion, max_chars=300):
             try:
                 # Formato de entrada mejorado
                 input_text = f"Resuma el siguiente texto de manera clara: {fragmento}"
-                inputs = tokenizer(input_text, return_tensors="pt", padding=True, truncation=True)
+                inputs = tokenizer(input_text, return_tensors="pt", padding=True, truncation=True, max_length=512)
 
                 # Generación de texto con hiperparámetros ajustados
                 outputs = model.generate(
@@ -194,19 +195,31 @@ def responder_pregunta(pregunta, transcripcion, max_chars=300):
     respuesta_final = re.sub(r'\s+', ' ', respuesta_final)  # Limpia espacios extra
     return respuesta_final
 
-def buscar_en_internet(query, max_resultados=5):
+def buscar_en_internet(query, max_resultados=5, pregunta=None, transcripcion=None):
     """
-    Realiza una búsqueda en Internet usando DuckDuckGo.
+    Realiza una búsqueda en Internet usando DuckDuckGo, con la opción de generar contexto usando responder_pregunta.
 
     Args:
         query (str): La consulta de búsqueda.
         max_resultados (int): Número máximo de resultados a devolver.
+        pregunta (str): La pregunta para generar contexto.
+        transcripcion (str): El texto de la transcripción para generar contexto.
 
     Returns:
         list: Una lista de diccionarios con 'titulo', 'url' y 'resumen' de los resultados.
     """
     resultados = []
+
+    # Generar contexto si se proporciona una pregunta y una transcripción
+    contexto = None
+    if pregunta and transcripcion:
+        contexto = responder_pregunta(pregunta, transcripcion)
+
     try:
+        # Si hay contexto, lo agrega a la consulta
+        if contexto:
+            query = f"{query} {contexto}"
+
         with DDGS() as ddgs:
             for r in ddgs.text(query, max_results=max_resultados):
                 resultados.append({

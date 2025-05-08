@@ -169,33 +169,33 @@ elif pagina == "Chat":
                 else:
                     st.error("❌ Error al enviar la pregunta")
 
-    # Muestra los resultados del procesamiento por lotes si están disponibles.
-    if "batch_resultados" in st.session_state:
-        st.markdown('<div class="subheader-custom">📦 Resultados del archivo:</div>', unsafe_allow_html=True)
-        for item in st.session_state["batch_resultados"]:
-            st.markdown(f"<div class='texto-grande'><strong>{item.get('titulo', 'Sin título')}</strong></div>", unsafe_allow_html=True)
-            st.text_area("Transcripción", value=item.get("transcripcion", ""), height=200, key=f"transcripcion_{item.get('id', '')}")
-            if 'id' in item:
-                st.markdown(
-                    f'<div class="link-limpio"><a href="{DJANGO_API_URL}/api/descargar_pdf/?id={item["id"]}" target="_blank">📥 Descargar PDF desde servidor</a></div>',
-                    unsafe_allow_html=True
-                )
-            with st.form(key=f"form_{item.get('id', i)}"):
-                pregunta = st.text_input("❓ Haz una pregunta sobre este video", key=f"pregunta_{item.get('id', i)}")
-                submit = st.form_submit_button("Preguntar")
-                if submit and pregunta:
-                    with st.spinner("Buscando respuesta..."):
-                        res = requests.post(f"{DJANGO_API_URL}/api/preguntar/", json={
-                            "pregunta": pregunta,
-                            "contenido": item.get("transcripcion", "")
-                        })
-                        if res.status_code == 200:
-                            respuesta = res.json().get("respuesta", "Sin respuesta")
-                            st.markdown("💬 **Respuesta:**")
-                            st.write(respuesta)
-                        else:
-                            st.error("❌ Error al enviar la pregunta")
-
+# Muestra los resultados del procesamiento por lotes si están disponibles.
+if "batch_resultados" in st.session_state:
+    st.markdown('<div class="subheader-custom">📦 Resultados del archivo:</div>', unsafe_allow_html=True)
+    for i, item in enumerate(st.session_state["batch_resultados"]):  # Usa enumerate para obtener un índice
+        st.markdown(f"<div class='texto-grande'><strong>{item.get('titulo', 'Sin título')}</strong></div>", unsafe_allow_html=True)
+        st.text_area("Transcripción", value=item.get("transcripcion", ""), height=200, key=f"transcripcion_{item.get('id', '')}")
+        if 'id' in item:
+            st.markdown(
+                f'<div class="link-limpio"><a href="{DJANGO_API_URL}/api/descargar_pdf/?id={item["id"]}" target="_blank">📥 Descargar PDF desde servidor</a></div>',
+                unsafe_allow_html=True
+            )
+        with st.form(key=f"form_{item.get('id', i)}"):  # Ahora i está definido
+            pregunta = st.text_input("❓ Haz una pregunta sobre este video", key=f"pregunta_{item.get('id', i)}")
+            submit = st.form_submit_button("Preguntar")
+            if submit and pregunta:
+                with st.spinner("Buscando respuesta..."):
+                    res = requests.post(f"{DJANGO_API_URL}/api/preguntar/", json={
+                        "pregunta": pregunta,
+                        "contenido": item.get("transcripcion", "")
+                    })
+                    if res.status_code == 200:
+                        respuesta = res.json().get("respuesta", "Sin respuesta")
+                        st.markdown("💬 **Respuesta:**")
+                        st.write(respuesta)
+                    else:
+                        st.error("❌ Error al enviar la pregunta")
+                        
 # ===== Buscar en Internet (solo si hay alguna transcripción disponible) =====
 if "transcripcion" in st.session_state or "batch_resultados" in st.session_state:
     st.divider()
