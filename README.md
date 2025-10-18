@@ -1,21 +1,21 @@
-# 📹 Asistente de Transcripción de Videos
+#  Asistente de Transcripción de Videos
 
 Este proyecto es una aplicación web que permite transcribir videos de YouTube, guardar la transcripción en PDF y hacer preguntas sobre el contenido del video. Está desarrollado con **Streamlit** como frontend, **Django REST Framework** como backend, y usa **MongoDB** para almacenar los datos.
 
 ---
 
-## 🚀 Funcionalidades
+##  Funcionalidades
 
-- 📥 Subida de links de videos de YouTube o archivos `.txt` con múltiples enlaces.
-- 🧠 Transcripción automática de audio (con Whisper).
-- 📄 Generación y almacenamiento de transcripción en formato PDF.
-- 🤖 Preguntas y respuestas sobre el contenido del video (usando un modelo LLM).
-- 💾 Almacenamiento de PDFs y transcripciones en MongoDB.
-- 🧭 Navegación sencilla entre secciones (`Inicio` y `Chat`) desde el frontend.
+- Subida de links de videos de YouTube o archivos `.txt` con múltiples enlaces.
+- Transcripción automática de audio (con Whisper).
+- Generación y almacenamiento de transcripción en formato PDF.
+- Preguntas y respuestas sobre el contenido del video (usando un modelo LLM).
+- Almacenamiento de PDFs y transcripciones en MongoDB.
+- Navegación sencilla entre secciones (`Inicio` y `Chat`) desde el frontend.
 
 ---
 
-## 🧰 Tecnologías Usadas
+##  Tecnologías Usadas
 
 ### Backend
 - [FFmpeg] para obtener audio
@@ -38,7 +38,7 @@ Este proyecto es una aplicación web que permite transcribir videos de YouTube, 
 
 ---
 
-## ⚙️ Configuración Local
+## Configuración Local
 
 ### 1. Clonar el repositorio
 
@@ -73,7 +73,7 @@ python manage.py runserver 10000
 streamlit run streamlit_app/app.py
 ```
 
-# 👨‍💻 Autores
+#  Autores
 
 - Ricardo Esteban D’Alessandro Marroquín González
 - Ricardo Adrián Colindres Franco 
